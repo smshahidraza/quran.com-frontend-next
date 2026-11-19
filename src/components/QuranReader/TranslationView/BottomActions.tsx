@@ -19,6 +19,7 @@ import LightbulbOnIcon from '@/icons/lightbulb-on.svg';
 import LightbulbIcon from '@/icons/lightbulb.svg';
 import QiraatIcon from '@/icons/qiraat-icon.svg';
 import RelatedVersesIcon from '@/icons/related-verses.svg';
+import SearchIcon from '@/icons/search.svg';
 import { openStudyMode } from '@/redux/slices/QuranReader/studyMode';
 import { selectSelectedTafsirs } from '@/redux/slices/QuranReader/tafsirs';
 import QuestionType from '@/types/QuestionsAndAnswers/QuestionType';
@@ -91,10 +92,11 @@ const BottomActions = ({
   const { data: hadithCount } = useBatchedCountRangeHadiths(verseKey);
   const hasHadiths = (hadithCount ?? 0) > 0;
 
-  const createTabHandler = (tabType: TabId, navigationFn: () => string) => {
+  const createTabHandler = (tabType: TabId, navigationFn?: () => string) => {
     return () => {
       const tabIdMap: Record<TabId, StudyModeTabId> = {
         [TabId.TAFSIR]: StudyModeTabId.TAFSIR,
+        [TabId.SYNTAX]: StudyModeTabId.SYNTAX,
         [TabId.LAYERS]: StudyModeTabId.LAYERS,
         [TabId.REFLECTIONS]: StudyModeTabId.REFLECTIONS,
         [TabId.LESSONS]: StudyModeTabId.LESSONS,
@@ -115,7 +117,9 @@ const BottomActions = ({
         }_verse_bottom_actions_${tabType}`,
       );
 
-      fakeNavigate(navigationFn(), lang);
+      if (navigationFn) {
+        fakeNavigate(navigationFn(), lang);
+      }
     };
   };
 
@@ -128,6 +132,13 @@ const BottomActions = ({
       onClick: createTabHandler(TabId.TAFSIR, () =>
         getVerseSelectedTafsirNavigationUrl(chapterId, Number(verseNumber), tafsirs[0]),
       ),
+      condition: true,
+    },
+    {
+      id: TabId.SYNTAX,
+      label: 'Syntax',
+      icon: <SearchIcon color="var(--color-blue-buttons-and-icons)" />,
+      onClick: createTabHandler(TabId.SYNTAX),
       condition: true,
     },
     {

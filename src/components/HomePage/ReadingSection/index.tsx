@@ -17,24 +17,26 @@ import Link, { LinkVariant } from '@/dls/Link/Link';
 import useGetRecentlyReadVerseKeys from '@/hooks/auth/useGetRecentlyReadVerseKeys';
 import useGetStreakWithMetadata from '@/hooks/auth/useGetStreakWithMetadata';
 import useGlobalReadingBookmark from '@/hooks/auth/useGlobalReadingBookmark';
+import useIsMobile from '@/hooks/useIsMobile';
 import useMappedBookmark from '@/hooks/useMappedBookmark';
 import BookmarkRemoveIcon from '@/icons/bookmark_remove.svg';
 import { selectGuestReadingBookmark } from '@/redux/slices/guestBookmark';
 import { selectQuranReaderStyles } from '@/redux/slices/QuranReader/styles';
-import { selectUserState } from '@/redux/slices/session';
+import { selectIsFirstTimeGuest, selectIsGuest } from '@/redux/slices/session';
 import BookmarkType from '@/types/BookmarkType';
 import { getMushafId } from '@/utils/api';
 import { GuestReadingBookmark } from '@/utils/bookmark';
 import { logButtonClick } from '@/utils/eventLogger';
 import { MY_QURAN_URL } from '@/utils/navigation';
-import { isMobile } from '@/utils/responsive';
 import { getPageFirstVerseKey } from '@/utils/verse';
 
 interface Props {}
 
 const ReadingSection: React.FC<Props> = () => {
   const { t } = useTranslation('home');
-  const { isFirstTimeGuest, isGuest } = useSelector(selectUserState);
+  const isMobileView = useIsMobile();
+  const isGuest = useSelector(selectIsGuest);
+  const isFirstTimeGuest = useSelector(selectIsFirstTimeGuest);
   const quranReaderStyles = useSelector(selectQuranReaderStyles);
   const guestReadingBookmark = useSelector(selectGuestReadingBookmark);
   const mushafId = getMushafId(quranReaderStyles.quranFont, quranReaderStyles.mushafLines).mushaf;
@@ -177,7 +179,7 @@ const ReadingSection: React.FC<Props> = () => {
         </div>
       </Card>
     ) : (
-      <>{!isMobile() && <NoGoalOrStreakCard />}</>
+      <>{!isMobileView && <NoGoalOrStreakCard />}</>
     );
 
   const newCard = <NewCard />;
@@ -215,7 +217,7 @@ const ReadingSection: React.FC<Props> = () => {
   }
 
   if (!isGuest) {
-    if (isMobile()) {
+    if (isMobileView) {
       return (
         <>
           {header}

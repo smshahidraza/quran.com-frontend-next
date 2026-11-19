@@ -3,7 +3,84 @@
 This document describes the feature work on the **current branch** compared to **`origin/production`**: a new **Syntax** experience in Quran Reader **Study Mode**, backed by a **Next.js API route** that calls **Quran MCP** for morphology (and optional paradigm-derived charts).
 
 **Baseline:** `git diff origin/production...HEAD`  
-**External reference:** [Quran MCP documentation](https://mcp.quran.ai/documentation) (Streamable HTTP, `fetch_grounding_rules`, `fetch_word_morphology`, `fetch_word_paradigm`).
+**External reference:** [Quran MCP documentation](https://mcp.quran.ai/documentation) (Streamable HTTP, `fetch_grounding_rules`, `fetch_word_morphology`, `fetch_word_paradigm`).  
+**End-to-end request flow (new developers):** [overview-request-flow.md](./overview-request-flow.md).
+
+---
+
+## Technologies used
+
+This list covers the **quran.com-frontend-next** stack overall, with notes where the Syntax / Study Mode work depends on a specific piece.
+
+### Core application
+
+| Technology | Role in this project |
+|------------|----------------------|
+| **[Next.js](https://nextjs.org/)** (14.x) | App framework: pages, API routes (`/api/syntax/analyze`), SSR/SSG, middleware, image optimization. |
+| **[React](https://react.dev/)** (18.x) | UI components (Quran Reader, Study Mode, Syntax view). |
+| **[TypeScript](https://www.typescriptlang.org/)** | Typed app code, shared types (`types/SyntaxAnalysis.ts`). |
+| **[SCSS modules](https://sass-lang.com/)** | Component-scoped styles (e.g. `SyntaxView.module.scss`, Study Mode tabs). |
+| **[Yarn](https://yarnpkg.com/)** | Package manager and scripts (`yarn dev`, `yarn build`). |
+| **Node.js** | Runtime for dev, build, and API routes (see `engines` in `package.json`). |
+
+### Syntax & Study Mode feature
+
+| Technology | Role in this project |
+|------------|----------------------|
+| **[Quran MCP](https://mcp.quran.ai/documentation)** | External morphology/paradigm service (Streamable HTTP). Called only from the server. |
+| **[@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)** | MCP client: `StreamableHTTPClientTransport`, tool calls in `syntaxAnalysisQuranMcp*.ts`. |
+| **Next.js API Routes** | `POST /api/syntax/analyze` — validates input, invokes MCP, returns JSON. |
+| **[SWR](https://swr.vercel.app/)** | Client data fetching in `SyntaxBody` (cache key per word / verse). |
+
+### State, routing & i18n
+
+| Technology | Role in this project |
+|------------|----------------------|
+| **[Redux Toolkit](https://redux-toolkit.js.org/)** + **react-redux** | Global state (e.g. Study Mode open/tab via `studyMode` slice). |
+| **[XState](https://xstate.js.org/)** + **@xstate/react** | Audio player and related UI state machines. |
+| **next-translate** | Locale strings (e.g. `quran-reader:tafsirs`); Syntax tab label is currently hard-coded `'Syntax'`. |
+| **Custom navigation helpers** | `fakeNavigate` / URL builders in `src/utils/navigation.ts` for Study Mode tabs with dedicated routes. |
+
+### UI & content libraries
+
+| Technology | Role in this project |
+|------------|----------------------|
+| **[Radix UI](https://www.radix-ui.com/)** | Accessible primitives (dialogs, tabs, tooltips, etc.). |
+| **SVG icons** (`@svgr/webpack`) | Inline React icons (`BookIcon`, `SearchIcon` for Syntax tab). |
+| **classnames** | Conditional CSS class names. |
+| **react-virtuoso** | Virtualized long lists in the reader. |
+| **Milkdown** | Rich-text editing where notes/reflections use markdown. |
+| **Remotion** | Media maker / video generation (separate from Syntax). |
+| **Firebase** | Auth and related client features. |
+| **Sanity** (`@sanity/client`) | CMS content where applicable. |
+
+### Quality, testing & tooling
+
+| Technology | Role in this project |
+|------------|----------------------|
+| **ESLint** + **Prettier** + **Stylelint** | Linting and formatting (TS/TSX/SCSS). |
+| **Husky** + **lint-staged** | Pre-commit hooks. |
+| **[Vitest](https://vitest.dev/)** | Unit tests. |
+| **[Playwright](https://playwright.dev/)** | Integration / E2E tests. |
+| **[Storybook](https://storybook.js.org/)** | Component development and docs. |
+
+### Deployment, observability & PWA
+
+| Technology | Role in this project |
+|------------|----------------------|
+| **[Vercel](https://vercel.com/)** / **[Netlify](https://www.netlify.com/)** | Hosting (`vercel.json`, `netlify.toml`, `@netlify/plugin-nextjs`). |
+| **[@sentry/nextjs](https://sentry.io/)** | Error and performance monitoring. |
+| **next-pwa** | Progressive Web App / service worker (production). |
+| **next-sitemap** | Sitemap generation after build. |
+| **Env vars** | e.g. `QURAN_SYNTAX_MCP_URL`, `NEXT_PUBLIC_SYNTAX_ANALYSIS_MOCK`, `NEXT_PUBLIC_VERCEL_URL` for API base URLs. |
+
+### Backend integration (non-Syntax)
+
+| Technology | Role in this project |
+|------------|----------------------|
+| **Quran Foundation API proxy** | `getProxiedServiceUrl` → `/api/proxy/{service}` for content, auth, search, etc. |
+| **http-proxy-middleware** | Server-side proxying in API routes. |
+| **SWR** / **fetch** | General client data loading across the app. |
 
 ---
 

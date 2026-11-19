@@ -9,12 +9,12 @@ import DataContext from '@/contexts/DataContext';
 import Button, { ButtonSize } from '@/dls/Button/Button';
 import IconContainer, { IconSize } from '@/dls/IconContainer/IconContainer';
 import Link, { LinkVariant } from '@/dls/Link/Link';
+import useIsMobile from '@/hooks/useIsMobile';
 import ArrowIcon from '@/icons/arrow.svg';
 import { getChapterData } from '@/utils/chapter';
 import { logButtonClick } from '@/utils/eventLogger';
 import { toLocalizedNumber } from '@/utils/locale';
 import { getChapterWithStartingVerseUrl, getPageNavigationUrl } from '@/utils/navigation';
-import { isMobile } from '@/utils/responsive';
 
 type Props = {
   surahNumber: number;
@@ -30,6 +30,7 @@ const ChapterCard: React.FC<Props> = ({
   isContinueReading = false,
 }) => {
   const { t, lang } = useTranslation('home');
+  const isMobileView = useIsMobile();
   const chaptersData = useContext(DataContext);
   const surahNumberString = surahNumber.toString();
   const chapterData = getChapterData(chaptersData, surahNumberString);
@@ -59,7 +60,9 @@ const ChapterCard: React.FC<Props> = ({
             </span>
             <span className={styles.translatedName} translate="no">
               {' '}
-              {isMobile() ? `${chapterData.translatedName}` : `(${chapterData.translatedName})`}
+              {isMobileView
+                ? `${chapterData.translatedName}`
+                : `(${chapterData.translatedName})`}
             </span>
           </div>
           {isContinueReading ? (

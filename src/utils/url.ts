@@ -9,8 +9,9 @@ export enum QuranFoundationService {
   QURAN_REFLECT = 'quran-reflect',
 }
 
-const STAGING_CONTENT_HOST = 'https://staging.quran.com';
-// const PRODUCTION_CONTENT_HOST = 'https://api.qurancdn.com';
+// Staging is often unreachable locally; use production Content CDN for verse/chapter fetches.
+// const STAGING_CONTENT_HOST = 'https://staging.quran.com';
+const PRODUCTION_CONTENT_HOST = 'https://api.qurancdn.com';
 
 export const getCurrentPath = () => {
   if (typeof window !== 'undefined') {
@@ -55,11 +56,27 @@ export const navigateToExternalUrl = (url: string) => {
   }
 };
 
+function normalizeDeployHost(raw: string): string {
+  return raw.replace(/^https?:\/\//, '').replace(/\/$/, '');
+}
+
 function resolveDeployHost(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
-  if (fromEnv) {
-    return fromEnv.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const fromPublic = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+  if (fromPublic) {
+    return normalizeDeployHost(fromPublic);
   }
+
+  // Vercel sets VERCEL_URL on the server/build (hostname only, no protocol).
+  const vercelHost = process.env.VERCEL_URL?.trim();
+  if (vercelHost) {
+    return normalizeDeployHost(vercelHost);
+  }
+
+  if (typeof window !== 'undefined' && window.location.host) {
+    return window.location.host;
+  }
+
+  // Netlify-only fallbacks (optional if you still deploy there).
   const netlifyUrl = process.env.URL || process.env.DEPLOY_PRIME_URL;
   if (netlifyUrl) {
     try {
@@ -68,6 +85,7 @@ function resolveDeployHost(): string {
       // fall through
     }
   }
+
   return process.env.NEXT_PUBLIC_VERCEL_ENV === 'development' ? 'localhost:3000' : 'quran.com';
 }
 
@@ -78,9 +96,10 @@ function resolveDeployHost(): string {
  * if we want to construct a full path e.g. when we add alternate languages
  * meta tags.
  *
- * On Netlify, falls back to `URL` / `DEPLOY_PRIME_URL` when `NEXT_PUBLIC_VERCEL_URL` is unset.
+ * Host resolution order: `NEXT_PUBLIC_VERCEL_URL` → `VERCEL_URL` (Vercel) →
+ * `window.location.host` (browser) → Netlify `URL` / `DEPLOY_PRIME_URL` → default.
  *
- * @see https://vercel.com/docs/concepts/projects/environment-variables
+ * @see https://vercel.com/docs/projects/environment-variables/system-environment-variables
  * @returns {string}
  */
 export const getBasePath = (): string => {
@@ -90,8 +109,7 @@ export const getBasePath = (): string => {
 
 export const getProxiedServiceUrl = (service: QuranFoundationService, path: string): string => {
   if (service === QuranFoundationService.CONTENT) {
-    const contentHost = STAGING_CONTENT_HOST;
-    return `${contentHost}${path}`;
+    return `${PRODUCTION_CONTENT_HOST}${path}`;
   }
 
   const PROXY_PATH = `/api/proxy/${service}`;

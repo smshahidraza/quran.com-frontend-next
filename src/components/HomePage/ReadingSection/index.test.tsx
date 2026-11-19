@@ -57,7 +57,11 @@ vi.mock('@/hooks/auth/useGetRecentlyReadVerseKeys', () => ({
 vi.mock('@/hooks/auth/useGetStreakWithMetadata', () => ({
   default: () => ({ goal: null, streak: null, currentActivityDay: null }),
 }));
-vi.mock('@/redux/slices/session', () => ({ selectUserState: (s: any) => s.session }));
+vi.mock('@/redux/slices/session', () => ({
+  selectIsGuest: (s: any) => s.session.isGuest,
+  selectIsFirstTimeGuest: (s: any) => s.session.isFirstTimeGuest,
+}));
+vi.mock('@/hooks/useIsMobile', () => ({ default: () => false }));
 vi.mock('@/redux/slices/QuranReader/styles', () => ({
   selectQuranReaderStyles: (s: any) => s.quranReaderStyles,
 }));
