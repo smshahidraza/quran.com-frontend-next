@@ -33,7 +33,7 @@ export const sessionSlice = createSlice({
 export const { incrementSessionCount, setIsDonationPopupVisible } = sessionSlice.actions;
 
 export const selectSessionCount = (state: RootState) => state.session.count;
-export const selectIsGuest = (_state: RootState) => !isLoggedIn();
+export const selectIsGuest = () => !isLoggedIn();
 export const selectIsFirstTimeGuest = (state: RootState) =>
   !isLoggedIn() && state.session.count === 2;
 

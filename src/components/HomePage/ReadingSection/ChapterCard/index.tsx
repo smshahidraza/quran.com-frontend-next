@@ -60,9 +60,7 @@ const ChapterCard: React.FC<Props> = ({
             </span>
             <span className={styles.translatedName} translate="no">
               {' '}
-              {isMobileView
-                ? `${chapterData.translatedName}`
-                : `(${chapterData.translatedName})`}
+              {isMobileView ? `${chapterData.translatedName}` : `(${chapterData.translatedName})`}
             </span>
           </div>
           {isContinueReading ? (
